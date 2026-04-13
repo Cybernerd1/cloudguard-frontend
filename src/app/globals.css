@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+:root {
+	color-scheme: light;
+}
+
+.font-jetbrains {
+	font-family: var(--font-jetbrains), var(--font-geist-mono), monospace;
+}
+
+.scrollbar-hide {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+	display: none;
+}
+
+@keyframes stasis-pulse {
+	0% {
+		box-shadow: 0 0 0 rgba(56, 189, 248, 0.2);
+	}
+	50% {
+		box-shadow: 0 0 20px rgba(56, 189, 248, 0.45);
+	}
+	100% {
+		box-shadow: 0 0 0 rgba(56, 189, 248, 0.2);
+	}
+}
+
+.stasis-pulse {
+	animation: stasis-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes particle-dissipate {
+	0% {
+		opacity: 1;
+		transform: scale(1);
+		filter: blur(0px);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(0.6);
+		filter: blur(8px);
+	}
+}
+
+.particle-dissipate {
+	animation: particle-dissipate 0.9s ease-out forwards;
+}
+
+@keyframes reflex-burst {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.02);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+.reflex-burst {
+	animation: reflex-burst 1.2s ease-in-out infinite;
+}
+
+.sovereign-backoff-overlay {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	background: radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.18), transparent 60%);
+	z-index: 40;
+}
