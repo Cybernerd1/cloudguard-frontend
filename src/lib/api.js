@@ -206,4 +206,58 @@ export async function triggerAuditVeto(resourceId, reason = "") {
   });
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// CLOUD-SECURITY-COPILOT BACKEND ENDPOINTS
+// These map to the actual FastAPI backend: /api/score, /api/findings, /api/chat
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** GET /api/score/ — Latest security posture snapshot from scan-history ES index */
+export async function fetchSecurityScore(options = {}) {
+  return apiFetch("/api/score/", options);
+}
+
+/** GET /api/score/trend?days=N — Risk trend over last N days */
+export async function fetchScoreTrend(days = 7, options = {}) {
+  return apiFetch(`/api/score/trend?days=${days}`, options);
+}
+
+/** POST /api/score/scan — Trigger a full resource scan */
+export async function triggerScan(options = {}) {
+  return apiFetch("/api/score/scan", { method: "POST", ...options });
+}
+
+/** GET /api/findings/summary — Findings count grouped by severity (chart data) */
+export async function fetchFindingsSummary(options = {}) {
+  return apiFetch("/api/findings/summary", options);
+}
+
+/** GET /api/findings/critical — All CRITICAL severity findings */
+export async function fetchCriticalFindings(options = {}) {
+  return apiFetch("/api/findings/critical", options);
+}
+
+/** GET /api/findings/top?limit=N — Top N highest-risk findings */
+export async function fetchTopFindings(limit = 20, options = {}) {
+  return apiFetch(`/api/findings/top?limit=${limit}`, options);
+}
+
+/** GET /api/findings/by-type — Findings counts grouped by resource type */
+export async function fetchFindingsByType(options = {}) {
+  return apiFetch("/api/findings/by-type", options);
+}
+
+/** GET /api/findings/cost-waste — EC2 idle instance cost waste breakdown */
+export async function fetchCostWaste(options = {}) {
+  return apiFetch("/api/findings/cost-waste", options);
+}
+
+/** POST /api/chat/ — Send a message to the AI copilot agent */
+export async function sendChatMessage(message, options = {}) {
+  return apiFetch("/api/chat/", {
+    method: "POST",
+    body: JSON.stringify({ message }),
+    ...options,
+  });
+}
+
 export { API_BASE };

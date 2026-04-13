@@ -9,11 +9,18 @@ ENV/
 .venv/
 env/
 
-# Environment variables (SENSITIVE!)
+# Environment variables (SENSITIVE — never commit real credentials!)
 .env
-.env*
-*.env.local
-*.env.production
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# .env.example IS safe to commit (template only — no real credentials)
+!.env.example
 
 # IDE
 .idea/
