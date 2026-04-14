@@ -1,6 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws/war-room";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
+
+// Derive WebSocket URL from the API base — converts http→ws and https→wss
+// This automatically uses wss:// on Vercel (HTTPS) and ws:// locally (HTTP),
+// eliminating the "Mixed Content" browser block without any extra env var.
+function _deriveWsUrl(apiBase) {
+  const wsBase = apiBase
+    .replace(/^https:\/\//i, "wss://")
+    .replace(/^http:\/\//i, "ws://")
+    .replace(/\/+$/, ""); // strip trailing slash
+  return `${wsBase}/ws/war-room`;
+}
+
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || _deriveWsUrl(API_BASE);
 const MAX_EVENTS = 200;
 const MAX_AMBER_ALERTS = 50;
 const MAX_NEGOTIATIONS = 120;
@@ -8,24 +21,24 @@ const MAX_NEGOTIATIONS = 120;
 export function useSovereignStream() {
   const [isConnected, setIsConnected] = useState(false);
   const [lastError, setLastError] = useState(null);
-  
+
   const [jScore, setJScore] = useState(1.0);
   const [wR, setWr] = useState(0.5);
   const [wC, setWc] = useState(0.5);
-  
+
   const [events, setEvents] = useState([]);
   const [topology, setTopology] = useState([]);
   const [amberAlerts, setAmberAlerts] = useState([]);
   const [negotiations, setNegotiations] = useState([]);
   const [backoffStatus, setBackoffStatus] = useState({ active: false, reason: '', retryAfterS: 0 });
-  
+
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const pingIntervalRef = useRef(null);
   const backoffResetTimeoutRef = useRef(null);
   const reconnectAttemptsRef = useRef(0);
   const manualCloseRef = useRef(false);
-  
+
   const stateQueueRef = useRef({
     events: [],
     amberAlerts: [],
@@ -40,7 +53,7 @@ export function useSovereignStream() {
 
   const processQueue = useCallback(() => {
     const queue = stateQueueRef.current;
-    
+
     if (queue.events.length > 0) {
       setEvents(prev => [...prev, ...queue.events].slice(-MAX_EVENTS));
       queue.events = [];
@@ -87,7 +100,7 @@ export function useSovereignStream() {
 
       queue.backoff = null;
     }
-    
+
     rafRef.current = null;
   }, []);
 
@@ -141,7 +154,7 @@ export function useSovereignStream() {
     if (wsRef.current?.readyState === WebSocket.OPEN || wsRef.current?.readyState === WebSocket.CONNECTING) {
       return;
     }
-    
+
     try {
       const ws = new WebSocket(WS_URL);
       wsRef.current = ws;
@@ -150,7 +163,7 @@ export function useSovereignStream() {
         setIsConnected(true);
         setLastError(null);
         reconnectAttemptsRef.current = 0;
-        
+
         // Keepalive ping expected by backend is a raw string "ping".
         pingIntervalRef.current = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
@@ -185,18 +198,18 @@ export function useSovereignStream() {
         if (manualCloseRef.current) {
           return;
         }
-        
+
         // Exponential backoff
         const backoffMs = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
         reconnectAttemptsRef.current++;
-        
+
         reconnectTimeoutRef.current = setTimeout(connect, backoffMs);
       };
 
       ws.onerror = (err) => {
         setLastError(err);
       };
-      
+
     } catch (err) {
       setLastError(err);
     }
@@ -205,7 +218,7 @@ export function useSovereignStream() {
   useEffect(() => {
     manualCloseRef.current = false;
     connect();
-    
+
     return () => {
       manualCloseRef.current = true;
       if (wsRef.current) {
